@@ -1,0 +1,238 @@
+name: ELPIS - DEFAULT
+
+on:
+  schedule:
+    - cron: '1 1 1 * *'
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: 
+      - main
+
+env:
+  APPLICATION_VERSION: 0.1.0
+  APPLICATION_NAME: Elpis
+
+permissions: write-all
+
+jobs:
+
+ sonarcloud-analyse:
+    runs-on: ubuntu-latest
+    steps:
+
+    - uses: actions/checkout@v3
+      with:
+        # Disabling shallow clone is recommended for improving relevancy of reporting
+        fetch-depth: 0
+
+    # Initializes the CodeQL tools for scanning.
+    - name: Initialize CodeQL
+      if: ${{ github.event_name == 'schedule' }}
+      uses: github/codeql-action/init@v2
+      with:
+        languages: javascript
+
+    - name: Install client's dependencies
+      working-directory: ${{github.workspace}}/client
+      run: npm install --legacy-peer-deps
+
+    - name: Update Browserlist
+      working-directory: ${{github.workspace}}/client
+      run: npx browserslist@latest --update-db
+
+    - name: Prettier format
+      if: ${{ github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' }}
+      working-directory: ${{github.workspace}}/client
+      run: | 
+        npm run prettier --config ./.prettierrc
+
+    - name: Save client changes
+      if: ${{ github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' }}
+      working-directory: ${{github.workspace}}
+      run: |
+        git stash || echo 'No modification to save'
+        git checkout ${{github.head_ref}}
+        git stash pop || echo 'No modification to save'
+        git config user.name "Florian-Thauvin"
+        git config user.email "${{secrets.EMAIL}}"
+        git add client
+        (git commit -m "[AUTO] prettier format write" && git push) || echo 'No modification to save'
+      env:
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
+    - name: Build client
+      working-directory: ${{github.workspace}}/client
+      run: npm run build
+
+    - name: Perform CodeQL Analysis
+      if: ${{ github.event_name == 'schedule' }}
+      uses: github/codeql-action/analyze@v2
+
+    - name: Extract Webpack stats
+      working-directory: ${{github.workspace}}/client
+      run: npm run webpack-stats
+
+    - name: Archive IHM
+      uses: actions/upload-artifact@v3
+      with:
+        name: IHM-Elpis
+        path: ${{github.workspace}}/client/build
+
+    - name: Client tests
+      working-directory: ${{github.workspace}}/client
+      run: npm start & (npm run cy:run && kill $(lsof -t -i:3000))
+
+    - name: Archive IHM Tests videos 
+      uses: actions/upload-artifact@v3
+      with:
+        name: IHM-Elpis-Tests-Videos 
+        path: ${{github.workspace}}/client/cypress/videos
+
+    - name: Print summary coverage
+      working-directory: ${{github.workspace}}/client
+      run: npx nyc report --reporter=lcov --reporter=text-summary
+
+    - name: ESlint analyze json
+      working-directory: ${{github.workspace}}/client
+      run: npm run lint:eslint:json || echo FAILED
+
+    - name: ESlint analyze html
+      working-directory: ${{github.workspace}}/client
+      run: npm run lint:eslint || echo FAILED
+
+    - name: Copy reports
+      working-directory: ${{github.workspace}}/client
+      if: always()
+      run: |
+        tree cypress
+        mkdir -p ./dist/cypress-reports
+        cp -R ./cypress/reports ./dist/cypress-reports
+        mv ./stats.json ./dist/reports/stats.json
+        mv ./build/stats.html ./dist/reports/stats.html
+
+    - name: Audit dependencies client
+      working-directory: ${{github.workspace}}/client
+      run: npm audit --json > ./dist/reports/audit-dependency-report.json || echo FAILED
+
+    - name: Convert Audit dependencies client report
+      working-directory: ${{github.workspace}}/client
+      run: ./node_modules/.bin/audiso --input-file=./dist/reports/audit-dependency-report.json --output-file ./dist/reports/audit-report.json
+
+    - name: Stylelint analyze
+      working-directory: ${{github.workspace}}/client
+      run: npm run lint:stylelint
+
+    - name: Generate Client Docs
+      working-directory: ${{github.workspace}}/client
+      run: npm run build:doc
+
+    - name: Archive Analyses reports
+      uses: actions/upload-artifact@v3
+      with:
+        name: IHM-Elpis-Analyses-report
+        path: ${{github.workspace}}/client/dist
+
+    - name: Setup sonarqube
+      if: github.actor != 'dependabot[bot]'
+      uses: warchant/setup-sonar-scanner@v3
+
+    - name: Run SonarQube full
+      working-directory: ${{github.workspace}}
+      if: github.actor != 'dependabot[bot]'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: sonar-scanner
+        -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+        -Dsonar.host.url=https://sonarcloud.io/
+        -Dsonar.verbose=false
+        -Dsonar.branch.name=branch-full
+
+    - name: Run SonarQube
+      if: github.actor != 'dependabot[bot]'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: sonar-scanner
+        -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+        -Dsonar.host.url=https://sonarcloud.io/
+        -Dsonar.verbose=false
+
+ build-Linux:
+    needs: [sonarcloud-analyse]
+    runs-on: ubuntu-latest
+    if: github.actor != 'dependabot[bot]' && github.event_name != 'pull_request'
+    steps:
+
+    - uses: actions/checkout@v3
+      with:
+        # Disabling shallow clone is recommended for improving relevancy of reporting
+        fetch-depth: 0
+
+    - uses: actions/download-artifact@v3
+      with:
+        name: IHM-Elpis
+        path: ${{github.workspace}}/client/build
+ 
+ build-Windows:
+    needs: [sonarcloud-analyse]
+    runs-on: windows-latest
+    if: github.actor != 'dependabot[bot]' && github.event_name != 'pull_request'
+    steps:
+
+    - uses: actions/checkout@v3
+
+    - uses: actions/download-artifact@v3
+      with:
+        name: IHM-Elpis
+        path: ${{github.workspace}}/client/build
+ 
+ build-MacOSX:
+    needs: [sonarcloud-analyse]
+    runs-on: macos-11
+    if: github.actor != 'dependabot[bot]' && github.event_name != 'pull_request'
+    steps:
+
+    - uses: actions/checkout@v3
+
+    - uses: actions/download-artifact@v3
+      with:
+        name: IHM-Elpis
+        path: ${{github.workspace}}/client/build
+ 
+ dependabot:
+    needs: [sonarcloud-analyse]
+    runs-on: ubuntu-latest
+    if: github.actor == 'dependabot[bot]'
+    steps:
+
+      - name: Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@v1.3.3
+        with:
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
+
+      - name: Enable auto-merge for Dependabot PRs 
+        run: gh pr merge --delete-branch --auto --squash "$PR_URL"
+        env:
+          PR_URL: ${{github.event.pull_request.html_url}}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+ packaging:
+    needs: [ build-Linux, build-Windows, build-MacOSX]
+    runs-on: ubuntu-latest
+    if: github.actor != 'dependabot[bot]'
+    steps:
+
+    - uses: actions/checkout@v3
+    
+    - name: Checkout Branch
+      run: echo "change git branch to develop"
+
+    - name: Test if version number is available
+      run: echo "test if version ${{env.APPLICATION_VERSION}} is available"
+  
+    - name: Update static files of host page to add new version an change log
+      run: echo "add version ${{env.APPLICATION_VERSION}} of application"
+
+    - name: Save application
+      run: tree ${{github.workspace}}/packaging && echo "save all changes"
