@@ -51,7 +51,7 @@ jobs:
       if: ${{ github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' }}
       working-directory: ${{github.workspace}}
       run: |
-        git stash
+        git stash || echo 'No modification to save'
         git checkout ${{github.head_ref}}
         git stash pop
         git config user.name "Florian-Thauvin"
