@@ -8,3 +8,4 @@
 /client/cypress/reports/tests/mochawesome.html
 /client/cypress/reports/tests/mochawesome.json
 /client/cypress/videos/loading.specs.ts.mp4
+/client/uml/model/**/*.old

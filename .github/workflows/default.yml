@@ -65,6 +65,10 @@ jobs:
       working-directory: ${{github.workspace}}/client
       run: npm run build
 
+    - name: Build model UML
+      working-directory: ${{github.workspace}}/client
+      run: npm run build:uml
+
     - name: Perform CodeQL Analysis
       if: ${{ github.event_name == 'schedule' }}
       uses: github/codeql-action/analyze@v2
