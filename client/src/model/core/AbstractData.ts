@@ -18,11 +18,11 @@ export abstract class AbstractData {
    */
   public abstract getIdentifiers(): Map<string, identifierType>;
 
-  /** 
-    * Determines if the objects has the same key   
-    * @param other other object to compare 
-    * @returns true if the objects has same identifiers 
-    */
+  /**
+   * Determines if the objects has the same key
+   * @param other other object to compare
+   * @returns true if the objects has same identifiers
+   */
   public equalsByIdentifier(other: AbstractData): boolean {
     let isEquals: boolean = true;
 
@@ -39,10 +39,13 @@ export abstract class AbstractData {
     else {
       // First, get identifier of each object
       const identifiers: Map<string, identifierType> = this.getIdentifiers();
-      const otherIdentifiers: Map<string, identifierType> = other.getIdentifiers();
+      const otherIdentifiers: Map<string, identifierType> =
+        other.getIdentifiers();
 
       // We check each identifier of the object
-      identifiers.forEach((value: identifierType, key: string) => this.checkIdentifier(isEquals, value, key, otherIdentifiers));
+      identifiers.forEach((value: identifierType, key: string) =>
+        this.checkIdentifier(isEquals, value, key, otherIdentifiers)
+      );
     }
 
     return isEquals;
@@ -51,15 +54,19 @@ export abstract class AbstractData {
   /**
    * Function used to check an indentifier
    * @param isEquals if value are equals
-   * @param value value to check 
+   * @param value value to check
    * @param key value key
-   * @param otherIdentifiers other identifiers 
+   * @param otherIdentifiers other identifiers
    * @returns null if objects are differents
    */
-  private checkIdentifier(isEquals: boolean, value: identifierType, key: string, otherIdentifiers: Map<string, identifierType>): void {
+  private checkIdentifier(
+    isEquals: boolean,
+    value: identifierType,
+    key: string,
+    otherIdentifiers: Map<string, identifierType>
+  ): void {
     // Get corresponding value from other object
-    const otherValue: identifierType | undefined =
-      otherIdentifiers.get(key);
+    const otherValue: identifierType | undefined = otherIdentifiers.get(key);
 
     // If we can't find the value, break all
     if (otherValue === undefined) {
