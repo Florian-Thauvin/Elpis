@@ -2,11 +2,6 @@
  * ELPIS project - 2022
  */
 
-import { Skill } from "src/model/common/Skill";
-import { SkillSet } from "src/model/common/SkillSet";
-import { DataNamed } from "src/model/core/specific/DataNamed";
-import { GeneralParameters } from "src/model/parameters/GeneralParameters";
-
 /**
  * Definition of a skill ramp up
  */
