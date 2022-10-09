@@ -1,9 +1,13 @@
+/**
+ * ELPIS project - 2022
+ */
+
 import structuredClone from "core-js/features/structured-clone";
 import React, { useCallback } from "react";
 import { render } from "react-dom";
 import { useTranslation } from "react-i18next";
-import { BrowserRouter, Link, Route, Routes } from "react-router-dom";
 import "regenerator-runtime/runtime";
+import { GeneralView } from "./view/general/GeneralView";
 import "./i18n";
 import "./index.scss";
 import reportWebVitals from "./reportWebVitals";
@@ -56,7 +60,8 @@ function App(): JSX.Element {
   );
 
   return (
-    <BrowserRouter>
+    <GeneralView />
+    /*<BrowserRouter>
       <div style={scopeStyle}>
         <span style={signInStyle}>
           <Link id="PAGES_SIGN_IN_LINK" to="sign-in">
@@ -68,6 +73,7 @@ function App(): JSX.Element {
           </Link>
         </span>
         <Routes>
+          <Route path="generalView" element={<GeneralView />}></Route>
           <Route path="about" element={<div>page-about-us</div>}></Route>
         </Routes>
         <div style={langStyle}>
@@ -79,7 +85,7 @@ function App(): JSX.Element {
           </button>
         </div>
       </div>
-    </BrowserRouter>
+    </BrowserRouter>*/
   );
 }
 
