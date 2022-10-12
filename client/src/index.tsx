@@ -11,6 +11,7 @@ import { GeneralView } from "./view/general/GeneralView";
 import "./i18n";
 import "./index.scss";
 import reportWebVitals from "./reportWebVitals";
+import { Link, Routes, Route, HashRouter } from "react-router-dom";
 
 const scopeStyle: React.CSSProperties = {
   display: "flex",
@@ -60,22 +61,18 @@ function App(): JSX.Element {
   );
 
   return (
-    <GeneralView />
-    /*<BrowserRouter>
+    <HashRouter>
       <div style={scopeStyle}>
         <span style={signInStyle}>
-          <Link id="PAGES_SIGN_IN_LINK" to="sign-in">
-            {String(t("FORMS.SIGN_IN.TITLE"))}
-          </Link>
-          &nbsp;/&nbsp;
-          <Link id="PAGES_SIGN_UP_LINK" to="sign-up">
-            {String(t("FORMS.SIGN_UP.TITLE"))}
+          <Link id="GENERAL_VIEW_LINK" to="generalView">
+            {String(t("GENERAL_VIEW_LINK"))}
           </Link>
         </span>
-        <Routes>
-          <Route path="generalView" element={<GeneralView />}></Route>
-          <Route path="about" element={<div>page-about-us</div>}></Route>
-        </Routes>
+        <div style={{width: '100%'}}>
+          <Routes>
+            <Route path="generalView" element={<GeneralView />}></Route>
+          </Routes>
+        </div>
         <div style={langStyle}>
           <button id="lang-fr" onClick={onLanguageClick}>
             FR
@@ -85,7 +82,7 @@ function App(): JSX.Element {
           </button>
         </div>
       </div>
-    </BrowserRouter>*/
+    </HashRouter>
   );
 }
 

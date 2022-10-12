@@ -10,7 +10,7 @@ import TextField from "@mui/material/TextField/TextField";
 
 export default function CheckboxList() {
   const [items, setItems] = React.useState(["Java", "Ts"]);
-  const [add, setAdd] = React.useState<string>('');
+  const [add, setAdd] = React.useState<string>("");
 
   const removeItem = (index: number) => {
     const newItems = [...items];
@@ -19,30 +19,29 @@ export default function CheckboxList() {
   };
 
   return (
-    <div id="TITI" style={{backgroundColor: 'antiquewhite'}}>
+    <div id="TITI" style={{ backgroundColor: "antiquewhite" }}>
       <TextField
         hiddenLabel
         id="filled-hidden-label-small"
         variant="filled"
         size="small"
         value={add}
-        
         onChange={(e) => setAdd(e.target.value)}
       />
 
       <IconButton
         aria-label="add"
         size="large"
-        style={{color: add !== '' ? 'royalblue': 'grey'}}
-        disabled={add === ''}
+        style={{ color: add !== "" ? "royalblue" : "grey" }}
+        disabled={add === ""}
         onClick={() => {
           setItems([...items, add]);
-          setAdd('');
+          setAdd("");
         }}
       >
         <AddCircleIcon />
       </IconButton>
-      <List sx={{ width: "100%", maxWidth: 360}}>
+      <List sx={{ width: "100%", maxWidth: 360 }}>
         {items.map((value, index) => {
           const labelId = `checkbox-list-label-${value}`;
 
