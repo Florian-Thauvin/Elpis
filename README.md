@@ -20,6 +20,7 @@ Les hypothèses suivantes ont été mises en place :
 - Les dépendances (aussi bien externes qu'internes) sont identifiées et tracées
 - L'estimation donnée est valable à un temps T, avec des ressources données et dans un scope fixe. 
   - En cas de modification d'une de ses variables, l'estimation n'est plus valide
+- Toute tâche ne dépendant pas d'une autre tâche est concernée comme parallélisable
   
 ## Règles 
 - Une tâche dont l'effort nécessaire pour sa réalisation est suppérieure au travail de trois personnes à temps plein ne sortira pas
