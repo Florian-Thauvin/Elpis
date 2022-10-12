@@ -23,7 +23,7 @@ Les hypothèses suivantes ont été mises en place :
   
 ## Règles 
 - Une tâche dont l'effort nécessaire pour sa réalisation est suppérieure au travail de trois personnes à temps plein ne sortira pas
-  - Exemple: Si une team a une vélocité de 0,25 SP/j/personne, avec des sprints de 3 semaines (15 jours), elle ne pourra pas sortir des tâches ayant un effort de plus de 11,25 SP
+  > Exemple: Si une team a une vélocité de 0,25 SP/j/personne, avec des sprints de 3 semaines (15 jours), elle ne pourra pas sortir des tâches ayant un effort de plus de 11,25 SP
 - Tout bloquage ou dépendence externe non maîtrisé empêche la tâche de sortir. Si un bloquage est identifié et maîtrisé (i.e. avec une date de résolution fixe), la tâche (ou sous-tâche) concernée ne commencera pas avant la date de résolution.
 - Si la finalisation d'une tâche a une marge correspondant à au moins 50% de l'effort nécessaire pour la sortir, elle est sûre de sortir.
-  - Exemple: Si une tâche a un effort estimé de 4SP, avec une team ayant une vélocité de 0,25 SP/j/personne pour un sprint de 3 semaines, elle est certaine de sortir si l'estimation de fin a lieu (4SP / 2) x (1 / 0,25) = 8 jours.
+  > Exemple: Si une tâche a un effort estimé de 4SP, avec une team ayant une vélocité de 0,25 SP/j/personne pour un sprint de 3 semaines, elle est certaine de sortir si l'estimation de fin a lieu (4SP / 2) x (1 / 0,25) = 8 jours.
