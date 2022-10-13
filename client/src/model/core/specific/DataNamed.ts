@@ -2,13 +2,13 @@
  * ELPIS project - 2022
  */
 
-import { AbstractData } from "../../core/AbstractData";
+import { AbstractRootData } from "../../core/AbstractRootData";
 import { identifierType } from "../../core/BasicTypes";
 
 /**
  * Definition of a data identified by a name
  */
-export abstract class DataNamed extends AbstractData {
+export abstract class DataNamed extends AbstractRootData {
   /**
    * Unique identifier of the data (read only)
    */

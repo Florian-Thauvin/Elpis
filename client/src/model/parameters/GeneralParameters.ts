@@ -2,12 +2,13 @@
  * ELPIS project - 2022
  */
 
+import { AbstractData } from "../core/AbstractData";
 import { Task } from "./Task";
 
 /**
  * All general parameters
  */
-export class GeneralParameters {
+export class GeneralParameters extends AbstractData{
   /** Number of days in a sprint */
   public numberOfDaysInSprint: number;
 

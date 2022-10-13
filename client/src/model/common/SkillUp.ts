@@ -2,10 +2,12 @@
  * ELPIS project - 2022
  */
 
+import { AbstractData } from "../core/AbstractData";
+
 /**
  * Definition of a skill ramp up
  */
-export class SkillUp {
+export class SkillUp extends AbstractData{
   /**
    * Efficiency (in percent) for a ramp up
    */

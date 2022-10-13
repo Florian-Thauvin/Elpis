@@ -5,12 +5,10 @@ import ListItemButton from "@mui/material/ListItemButton";
 import ListItemText from "@mui/material/ListItemText";
 import IconButton from "@mui/material/IconButton";
 import DeleteIcon from "@mui/icons-material/Delete";
-import AddCircleIcon from "@mui/icons-material/AddCircle";
-import TextField from "@mui/material/TextField/TextField";
+import { SubmitTextField } from "./SubmitTextField";
 
 export default function CheckboxList() {
   const [items, setItems] = React.useState(["Java", "Ts"]);
-  const [add, setAdd] = React.useState<string>("");
 
   const removeItem = (index: number) => {
     const newItems = [...items];
@@ -20,27 +18,9 @@ export default function CheckboxList() {
 
   return (
     <div id="TITI" style={{ backgroundColor: "antiquewhite" }}>
-      <TextField
-        hiddenLabel
-        id="filled-hidden-label-small"
-        variant="filled"
-        size="small"
-        value={add}
-        onChange={(e) => setAdd(e.target.value)}
-      />
+      <SubmitTextField {...{onAdd: (value: string) => {setItems([...items, value])}}}/>
 
-      <IconButton
-        aria-label="add"
-        size="large"
-        style={{ color: add !== "" ? "royalblue" : "grey" }}
-        disabled={add === ""}
-        onClick={() => {
-          setItems([...items, add]);
-          setAdd("");
-        }}
-      >
-        <AddCircleIcon />
-      </IconButton>
+
       <List sx={{ width: "100%", maxWidth: 360 }}>
         {items.map((value, index) => {
           const labelId = `checkbox-list-label-${value}`;

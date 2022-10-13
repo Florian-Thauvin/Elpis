@@ -17,24 +17,33 @@ import TextField from "@mui/material/TextField/TextField";
 import React from "react";
 import { useTranslation, TFunction } from "react-i18next";
 import { IInputKey } from "src/locales/translationKeys";
+import { AbstractData } from "../../model/core/AbstractData";
 import TRANSLATION_KEYS from "../../locales";
 import ListView from "./ListView";
 import { ETableCellType, TableView } from "./TableView";
+import { TimerOptions } from "timers";
 
 export const GENERAL_VIEW_ID = "GeneralViewId";
 export const NUMBER_OF_DAY_ID = "NumberOfDayId";
 export const SKILLS_ID = "SkillsId";
 
-interface tmp {
-  name: string;
-  value: number;
+class tmp extends AbstractData{
+  objectType = "titi";
+  public name: string;
+  public value: number;
+  
+  constructor(name: string, value: number){
+    super();
+    this.name = name;
+    this.value = value;
+  }
 }
 
 export function GeneralView(): JSX.Element {
   const { t } = useTranslation();
   const TRADUCTION_KEYS = TRANSLATION_KEYS.GENERAL_PARAMETERS;
 
-  const [data, setData] = React.useState<tmp[]>([{name:'titi', value:1}]);
+  const [data, setData] = React.useState<tmp[]>([new tmp('titi', 1)]);
 
   return (
     <div
@@ -48,11 +57,12 @@ export function GeneralView(): JSX.Element {
       <TableView
         {...{
           headers: [
-            { label: "name", type: ETableCellType.LABEL, field: "name" },
+            { label: "name", type: ETableCellType.STRING_INPUT, field: "name" },
             { label: "value", type: ETableCellType.NUMBER_INPUT, field: "value" }
           ],
           data,
-          setData
+          setData,
+          newData: () => new tmp('', 0)
         }}
       />
     </div>

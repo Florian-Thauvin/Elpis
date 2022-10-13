@@ -2,12 +2,13 @@
  * ELPIS project - 2022
  */
 
+import { AbstractData } from "../core/AbstractData";
 import { Skill } from "./Skill";
 
 /**
  * Definition of a set of skills
  */
-export class SkillSet {
+export class SkillSet extends AbstractData{
   /**
    * List of all skills
    */
