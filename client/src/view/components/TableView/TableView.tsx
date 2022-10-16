@@ -25,6 +25,7 @@ import AddCircleIcon from "@mui/icons-material/AddCircle";
 import DeleteIcon from "@mui/icons-material/Delete";
 import FilterAltIcon from "@mui/icons-material/FilterAlt";
 import { visuallyHidden } from "@mui/utils";
+import { Badge } from "@mui/material";
 
 export enum ETableCellType {
   NUMBER_INPUT = "number",
@@ -48,6 +49,7 @@ export interface ITableViewProps<T extends AbstractData> {
   data: T[];
   newData: () => T;
   setData: React.Dispatch<React.SetStateAction<T[]>>;
+  unicityGroups: ((keyof T)[])[];
 }
 
 type junctionType = "AND" | "OR";
@@ -85,19 +87,15 @@ export function TableView<T extends AbstractData>(props: ITableViewProps<T>) {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
   const [selected, setSelected] = React.useState<readonly string[]>([]);
+  const [hasError, onError] = React.useState<boolean>(false);
+
+  const [unicityViolations, setUnicityViolations] = React.useState<string[][]>([]);
+
   const [specificFilters, setSpecificFilters] = React.useState<
     specificFilter<T>[]
   >([]);
 
-  const filteredData = filterData(data, specificFilters);
-  const sortedData =
-    orderBy !== null
-      ? filteredData.sort(getComparator(order, orderBy))
-      : filteredData;
-  const rows: T[] =
-    rowsPerPage > 0
-      ? sortedData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-      : sortedData;
+  const rows: T[] = calculateRows<T>(data, specificFilters, orderBy, order, rowsPerPage, page);
   const rowCount = rows.length;
 
   const createSortHandler =
@@ -145,13 +143,31 @@ export function TableView<T extends AbstractData>(props: ITableViewProps<T>) {
     setSelected([]);
   };
 
+  const onAddData = ()=> {
+    const newData = props.newData();
+    const newDataList = [...data, newData];
+    const newPage = calculateNewPage(newData, newDataList, specificFilters, orderBy, order, rowsPerPage, page);
+    setData(newDataList);
+    setPage(newPage);
+  };
+
+  const onDataChanged = (value: string | number, id: string, field: keyof T) => {
+    const dataValue = data.find(d => d.getId() === id);
+    if(dataValue !== undefined){
+      (dataValue[field] as string | number) = value;
+    }
+
+    setUnicityViolations(checkDuplicatedData(data, props.unicityGroups));
+  };
+
   return (
     <div>
       <div>
         <IconButton
           aria-label="add"
           size="large"
-          onClick={() => setData([...data, props.newData()])}
+          onClick={onAddData}
+          disabled = {hasError}
         >
           <AddCircleIcon />
         </IconButton>
@@ -176,7 +192,7 @@ export function TableView<T extends AbstractData>(props: ITableViewProps<T>) {
                   checked={rowCount > 0 && selected.length === rowCount}
                   onChange={handleSelectAllClick}disabled = {data.length === 0}
                   inputProps={{
-                    "aria-label": "select all desserts"
+                    "aria-label": "select all items"
                   }}
                 />
               </TableCell>
@@ -201,6 +217,8 @@ export function TableView<T extends AbstractData>(props: ITableViewProps<T>) {
                       required
                       disabled = {data.length === 0}
                       id={header.label}
+                      variant="standard"
+                      size="small"
                       type={header.type.toString()}
                       InputLabelProps={{
                         shrink: true
@@ -218,14 +236,12 @@ export function TableView<T extends AbstractData>(props: ITableViewProps<T>) {
                           }
                         );
                         if (existingFilter) {
-                          console.log("TITI", e)
                           if (value !== "") {
                             existingFilter.value = value;
                           } else {
                             const newFilters =  [...specificFilters]
                             newFilters.splice(index, 1);
-                            setSpecificFilters(newFilters);  
-                            console.log("TITI remove", newFilters, index);                    
+                            setSpecificFilters(newFilters);                    
                           }
                         } else {
                           setSpecificFilters([
@@ -240,7 +256,7 @@ export function TableView<T extends AbstractData>(props: ITableViewProps<T>) {
               })}
             </TableRow>
           </TableHead>
-          <TableViewBody {...{ rows, page, headers, selected, setSelected }} />
+          <TableViewBody {...{ rows, page, headers, selected, setSelected, onError, onDataChanged, unicityViolations }} />
         </Table>
         <TableFooter>
           <TableRow>
@@ -265,6 +281,72 @@ export function TableView<T extends AbstractData>(props: ITableViewProps<T>) {
       </TableContainer>
     </div>
   );
+}
+
+function calculateRows<T extends AbstractData>(data: T[], specificFilters: specificFilter<T>[], orderBy: keyof T | null, order: Order, rowsPerPage: number, page: number) {
+  const sortedData = filterAndSortData<T>(data, specificFilters, orderBy, order);
+  const rows: T[] = rowsPerPage > 0
+    ? getRowsForPage(sortedData, rowsPerPage, page)
+    : sortedData;
+  return rows;
+}
+
+function calculateNewPage<T extends AbstractData>(newData: T, data: T[], specificFilters: specificFilter<T>[], orderBy: keyof T | null, order: Order, rowsPerPage: number, page: number): number {
+  let newPage = 0;
+  const sortedData = filterAndSortData<T>(data, specificFilters, orderBy, order);
+
+  if(rowsPerPage > 0){
+    const numberOfPages = Math.ceil(sortedData.length / rowsPerPage);
+
+    for(let i = 0; i <= numberOfPages; i++){
+      const pageAtI = getRowsForPage(sortedData, rowsPerPage, i);
+      if(newData.isInList(pageAtI)){
+        newPage = i;
+        break;
+      }
+    }
+  }
+
+  return newPage;
+}
+
+function getRowsForPage<T extends AbstractData>(sortedData: T[], rowsPerPage: number, page: number): T[]{
+  return sortedData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+}
+
+function filterAndSortData<T extends AbstractData>(data: T[], specificFilters: specificFilter<T>[], orderBy: keyof T | null, order: Order) {
+  const filteredData = filterData(data, specificFilters);
+  const sortedData = orderBy !== null
+    ? filteredData.sort(getComparator(order, orderBy))
+    : filteredData;
+  return sortedData;
+}
+
+function checkDuplicatedData<T extends AbstractData>(data: T[], unicityGroups: ((keyof T)[])[]): (string[])[]{
+  const objectsInConflict: (string[])[] =  [];
+
+  unicityGroups.forEach((group) => {
+    const idByUnicity: Map<string, string[]>  = new Map();
+
+    data.map((item) => {
+      const unicity = group.map((uniqueField) => item[uniqueField]);
+      const unicityCalculated = unicity.join('_');
+
+      if(idByUnicity.has(unicityCalculated)){
+        idByUnicity.get(unicityCalculated)?.push(item.getId());
+      } else {
+        idByUnicity.set(unicityCalculated, [item.getId()]);
+      }
+    });
+
+    idByUnicity.forEach((value: string[]) => {
+      if(value.length > 1){
+        objectsInConflict.push(value);
+      }
+    });
+  });
+
+  return objectsInConflict;
 }
 
 function descendingComparator<T extends AbstractData>(
@@ -297,12 +379,43 @@ interface ITableViewBodyProps<T extends AbstractData> {
   headers: ITableHeaderProps<T>[];
   selected: readonly string[];
   setSelected: React.Dispatch<React.SetStateAction<readonly string[]>>;
+  onError: (hasError: boolean) => void;
+  onDataChanged: (value: string | number, id: string, field: keyof T) => void,
+  unicityViolations: string[][]
 }
 
-function TableViewBody<T extends AbstractData>(props: ITableViewBodyProps<T>) {
-  const { rows, headers, selected, setSelected } = props;
+function getUnicityId(id: string, unicityViolations: string[][]): number[] {
+  let unicityId: number[] = [];
+  
+  unicityViolations.forEach((value: string[], index: number)=> {
+    if(value.includes(id)){
+      unicityId.push(index);
+    }
+  });
 
+  return unicityId;
+}
+
+function TableViewBody<T extends AbstractData>(props: ITableViewBodyProps<T>): JSX.Element {
+  const { rows, headers, selected, setSelected, onError, onDataChanged, unicityViolations } = props;
   const isSelected = (name: string) => selected.includes(name);
+  
+  const rowsOnError: number[] = [];
+
+  const onRowError = (isRowOnError: boolean, row: number) => {    
+    const index = rowsOnError.indexOf(row);
+    if(isRowOnError){
+      if(index === -1){
+        rowsOnError.push(row);
+      }
+    } else {
+      if(index !== -1){
+        rowsOnError.splice(index, 1);
+      }
+    }
+
+    onError(rowsOnError.length !== 0);    
+  };
 
   const handleClick = (_event: React.MouseEvent<unknown>, name: string) => {
     const selectedIndex = selected.indexOf(name);
@@ -326,9 +439,10 @@ function TableViewBody<T extends AbstractData>(props: ITableViewBodyProps<T>) {
 
   return (
     <TableBody>
-      {rows.map((item) => {
+      {rows.map((item: T) => {
         const id = item.getId();
         const isItemSelected = isSelected(id);
+        const unicityFailed = getUnicityId(id, unicityViolations);
 
         return (
           <TableRow
@@ -341,24 +455,28 @@ function TableViewBody<T extends AbstractData>(props: ITableViewBodyProps<T>) {
             selected={isItemSelected}
           >
             <TableCell padding="checkbox">
-              <Checkbox
-                color="primary"
-                checked={isItemSelected}
-                onClick={(event) => handleClick(event, id)}
-                inputProps={{
-                  "aria-labelledby": `label_${id}`
-                }}
-              />
+              
+              <Badge color="secondary" badgeContent={unicityFailed.length === 1 ? `${unicityFailed[0]}` : 'N'} invisible={unicityFailed.length === 0}>
+                <Checkbox
+                  color="primary"
+                  checked={isItemSelected}
+                  onClick={(event) => handleClick(event, id)}
+                  inputProps={{
+                    "aria-labelledby": `label_${id}`
+                  }}
+                />              
+              </Badge>
             </TableCell>
-            {headers.map((header) => {
+            {headers.map((header, index) => {
               const dataToDisplay = Object.entries(item).find(
                 (d) => d[0] === header.field
               );
+
               return dataToDisplay ? (
                 <TableCell align="left">
-                  <TableItem
-                    {...{ ...header, data: dataToDisplay[1] }}
-                  ></TableItem>
+                    <TableItem
+                      {...{ ...header, data: dataToDisplay[1],onDataChanged: (value: string | number) => onDataChanged(value, id, header.field), onRowError: (onError: boolean) => onRowError(onError, index) }}
+                    ></TableItem>
                 </TableCell>
               ) : (
                 <></>
@@ -452,17 +570,19 @@ function TablePaginationActions(props: TablePaginationActionsProps) {
 }
 
 interface TableItemProps<T extends AbstractData> extends ITableHeaderProps<T> {
-  data: string | number | number;
+  data: string | number ;
+  onDataChanged:(newValue: string | number) => void;
+  onRowError: (onError: boolean) => void;
 }
 
 function isValid(value: string | number, 
   type: ETableCellType, constraints: IFieldConstraints){
   let isValid = false;
-
   if(value === null){
      isValid = !constraints.isMandatory;
   } else if(type === ETableCellType.STRING_INPUT){
-    isValid = constraints.regexp ? constraints.regexp.test(value as string) :  true;
+    const valueString = value as string;
+    isValid = valueString.length > 0 && (constraints.regexp ? constraints.regexp.test(valueString) :  true);
   } else {
     isValid = true;
   }
@@ -470,15 +590,24 @@ function isValid(value: string | number,
   return isValid;
 }
 
-function TableItem<T extends AbstractData> (props: TableItemProps<T>) {
+function TableItem<T extends AbstractData> (props: TableItemProps<T>): JSX.Element {
   const [value, setValue] = React.useState(props.data);
+  const [onError, setOnError] = React.useState(false);
+
+  React.useEffect(() => {
+    const isOnError = !isValid(value, props.type, props.constraints);
+    props.onRowError(isOnError);
+    setOnError(isOnError);
+    props.onDataChanged(value);
+  }, [value]);
 
   return (
     <TextField
       id="standard-basic"
       variant="standard"
+      size="small"
       defaultValue={value}
-      error={!isValid(value, props.type, props.constraints)}
+      error={onError}
       type={props.type.toString()}
       onChange={(e) => setValue(e.target.value)}
     />

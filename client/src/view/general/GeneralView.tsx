@@ -55,12 +55,13 @@ export function GeneralView(): JSX.Element {
       <TableView
         {...{
           headers: [
-            { label: "name", type: ETableCellType.STRING_INPUT, field: "name", constraints:{isMandatory: true} },
+            { label: "name", type: ETableCellType.STRING_INPUT, field: "name", constraints:{isMandatory: true, regexp: new RegExp('^[A-Z]+$')} },
             { label: "value", type: ETableCellType.NUMBER_INPUT, field: "value", constraints:{isMandatory: true} }
           ],
           data,
           setData,
-          newData: () => new tmp('', 0)
+          newData: () => new tmp('a', 0),
+          unicityGroups: [['name']]
         }}
       />
     </div>
