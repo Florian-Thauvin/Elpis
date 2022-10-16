@@ -9,6 +9,7 @@ import { User } from "./user/User";
  * Definition of a Team
  */
 export class Team extends DataNamed {
+  /** Type of object */
   protected objectType: string = "Team";
 
   /** All user in the team */

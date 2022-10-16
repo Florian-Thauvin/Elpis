@@ -9,6 +9,7 @@ import { identifierType } from "../../core/BasicTypes";
  * Definition of a data identified by a name
  */
 export abstract class DataNamed extends AbstractRootData {
+  
   /**
    * Unique identifier of the data (read only)
    */

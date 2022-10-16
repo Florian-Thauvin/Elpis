@@ -9,8 +9,6 @@ import { identifierType } from "./BasicTypes";
  * Base class definition
  */
 export abstract class AbstractRootData extends AbstractData {
-  /** Type of object */
-  protected objectType: string = "AbstractRootData";
 
   /**
    * Function used to get the identifiers of an object
@@ -24,7 +22,7 @@ export abstract class AbstractRootData extends AbstractData {
    * @param other other object to compare
    * @returns true if the objects has same identifiers
    */
-  public equalsByIdentifier(other: AbstractData): boolean {
+  public equalsByIdentifier(other: AbstractRootData): boolean {
     let isEquals: boolean = true;
 
     // First, check if the other object is not null
@@ -79,9 +77,9 @@ export abstract class AbstractRootData extends AbstractData {
     let isValueEquals = true;
 
     // Special case for AbstractData, we need to use a recursive call
-    if (value instanceof AbstractData) {
+    if (value instanceof AbstractRootData) {
       isValueEquals =
-        otherValue instanceof AbstractData
+        otherValue instanceof AbstractRootData
           ? value.equalsByIdentifier(otherValue)
           : false;
     } else {

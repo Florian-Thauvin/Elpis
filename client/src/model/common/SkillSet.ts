@@ -9,6 +9,8 @@ import { Skill } from "./Skill";
  * Definition of a set of skills
  */
 export class SkillSet extends AbstractData{
+  /** Type of object */
+  protected objectType: string = "SkillSet";
   /**
    * List of all skills
    */
@@ -19,6 +21,7 @@ export class SkillSet extends AbstractData{
    * @param skills  List of all skills
    */
   constructor(skills: Skill[]) {
+    super();
     this.skills = [...skills];
   }
 

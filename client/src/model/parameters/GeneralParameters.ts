@@ -29,6 +29,7 @@ export class GeneralParameters extends AbstractData{
     allSkillsTypes: string[],
     ...incompresibleProcesses: Task[]
   ) {
+    super();
     this.numberOfDaysInSprint = numberOfDaysInSprint;
     this.allSkillsTypes = allSkillsTypes;
     this.incompresibleProcesses = [...incompresibleProcesses];

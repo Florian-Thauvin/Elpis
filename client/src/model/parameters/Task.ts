@@ -10,6 +10,9 @@ import { DataNamed } from "../core/specific/DataNamed";
  * Definition of a task
  */
 export class Task extends DataNamed {
+  /** Type of object */
+  protected objectType: string = "Task";
+
   /**
    * Estimation of the task duration
    */

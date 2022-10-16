@@ -10,6 +10,7 @@ import { Team } from "./Team";
  * Definition of a sprint
  */
 export class Sprint extends DataNamed {
+  /** Type of object */
   protected objectType: string = "Sprint";
 
   /** List of all {@link Task} to do in duration defined in {@link GeneralParameters} */

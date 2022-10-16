@@ -9,6 +9,7 @@ import { SkillUp } from "./SkillUp";
  * Definition of a skill
  */
 export class Skill extends DataNamed {
+  /** Type of object */
   protected objectType: string = "Skill";
 
   /**
